@@ -1,0 +1,60 @@
+id: shopify-detect
+
+info:
+  name: Shopify Detection
+  author: Chirag Mistry
+  severity: info
+  description: |
+    An instance running Shopify is detected by looking for specific HTTP headers, HTML tags, and known endpoints.
+  metadata:
+    max-request: 7
+    shodan-query: http.component:"Shopify"
+  tags: shopify,detect,tech
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}"
+      - "{{BaseURL}}/robots.txt"
+      - "{{BaseURL}}/sitemap.xml"
+      - "{{BaseURL}}/admin"
+      - "{{BaseURL}}/shopify_app"
+      - "{{BaseURL}}/shopify_api"
+      - "{{BaseURL}}/favicon.ico"
+
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: response
+        words:
+          - "X-Shopify-Stage"
+          - "Powered by Shopify"
+          - "cdn.shopify.com"
+          - "Shopify Store"
+          - "Shopify Liquid"
+        condition: or
+        case-insensitive: true
+
+      - type: status
+        status:
+          - 200
+          - 403
+
+    extractors:
+      - type: regex
+        part: body
+        name: version
+        regex:
+          - 'Shopify ([0-9.]+)'
+          - 'Shopify version ([0-9.]+)'
+          - 'Coded by Shopify ([0-9.]+)'
+          - 'Theme: ([A-Za-z0-9_-]+) Shopify'
+
+      - type: regex
+        part: body
+        name: shopify_id
+        regex:
+          - 'shop_id=([0-9]+)'
+          - 'shopify://([0-9a-zA-Z]+)'
+# digest: 4a0a0047304502200094b61a976c95e6e523b3a9fa8bf04b90cc4dcd5d3ecc71ffa4f0e3d4ebe7e502210092d2e08ea1e96bbe051fa70063d6e7081736b88072b321e4c70f001f537a6646:922c64590222798bb761d5b6d8e72950
